@@ -47,6 +47,12 @@ var user = cache.GetOrSet<User>(
     TimeSpan.FromSeconds(30)
 );
 ```
+## Acknowledgments
+
+This project uses the following open-source software:
+
+- [RocksDb](https://github.com/curiosity-ai/rocksdb-sharp) - licensed under the [BSD-2-Clause License](https://github.com/curiosity-ai/rocksdb-sharp/blob/master/LICENSE).
+- [FusionCache](https://github.com/ZiggyCreatures/FusionCache) - licensed under the [MIT License](https://github.com/ZiggyCreatures/FusionCache/blob/main/LICENSE.md).
 
 ## License
 

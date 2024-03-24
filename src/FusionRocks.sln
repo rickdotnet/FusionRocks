@@ -10,6 +10,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demo", "demo", "{A739BCE1-A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FusionDemo", "..\demo\FusionDemo\FusionDemo.csproj", "{B566FBB3-398E-4DE7-A87B-2CF17CF755FE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{C7549218-4FCB-4E95-BA1F-BBE1720B45F3}"
+	ProjectSection(SolutionItems) = preProject
+		..\build\default.props = ..\build\default.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
