@@ -47,7 +47,7 @@ public class FusionRocksIntegrationTests : IDisposable
     }
 
     [Fact]
-    public async Task RemoveAsync_RemovesKey_WhenKeyExists()
+    public void RemoveAsync_RemovesKey_WhenKeyExists()
     {
         // Arrange
         var key = "key-to-remove";
@@ -56,7 +56,7 @@ public class FusionRocksIntegrationTests : IDisposable
         fusionRocks.Set(key, value, new DistributedCacheEntryOptions());
 
         // Act
-        await fusionRocks.RemoveAsync(key);
+        fusionRocks.Remove(key);
         var valueAfterRemove = fusionRocks.Get(key);
 
         // Assert

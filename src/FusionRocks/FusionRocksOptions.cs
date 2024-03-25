@@ -9,7 +9,7 @@ public record FusionRocksOptions : IOptions<FusionRocksOptions>
     public static Action<FusionRocksOptions> DefaultAction { get; } = _ => { };
     FusionRocksOptions IOptions<FusionRocksOptions>.Value => this;
     public DbOptions DbOptions { get; init; }
-    public string CachePath { get; init; } = "FusionRocksCache.db";
+    public string CachePath { get; init; } = "FusionRocksCache";
 
     public FusionRocksOptions(): this(new DbOptions().SetCreateIfMissing()) { }
     public FusionRocksOptions(DbOptions options)

@@ -8,7 +8,7 @@ namespace FusionRocks;
 
 public sealed class FusionRocks : IDistributedCache, IDisposable
 {
-    private readonly ILogger logger;
+    private readonly ILogger logger; // TODO: use me
     private readonly RocksDb rocksDb;
 
     public FusionRocks(FusionRocksOptions options, ILogger<FusionRocks>? logger = null)
@@ -17,7 +17,7 @@ public sealed class FusionRocks : IDistributedCache, IDisposable
         rocksDb = RocksDb.Open(options.DbOptions, options.CachePath);
     }
 
-    public byte[]? Get(string key)
+    public byte[]? Get(string key) 
         => rocksDb.Get(key.ToBytes());
 
     public Task<byte[]?> GetAsync(string key, CancellationToken token = default)
@@ -54,12 +54,11 @@ public sealed class FusionRocks : IDistributedCache, IDisposable
     public Task RemoveAsync(string key, CancellationToken token = default)
         => Task.Run(() => Remove(key), token);
 
-    public void Dispose()
-    {
-        rocksDb.Dispose();
-    }
+    public void Dispose() 
+        => rocksDb.Dispose();
 }
-static class StringExtensions
+
+internal static class StringExtensions
 {
     public static byte[] ToBytes(this string value)
         => Encoding.UTF8.GetBytes(value);
