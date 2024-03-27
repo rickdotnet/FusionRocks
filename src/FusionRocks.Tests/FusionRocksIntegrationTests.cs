@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Distributed;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace FusionRocks.Tests;
 
@@ -15,7 +16,7 @@ public class FusionRocksIntegrationTests : IDisposable
         {
             CachePath = testDbPath
         };
-        fusionRocks = new FusionRocks(options);
+        fusionRocks = new FusionRocks(options, new FusionCacheSystemTextJsonSerializer());
     }
 
     [Fact]
@@ -65,10 +66,7 @@ public class FusionRocksIntegrationTests : IDisposable
 
     public void Dispose()
     {
-        // Clean up the RocksDB instance
         fusionRocks.Dispose();
-
-        // Optionally delete the database files if you don't need them for debugging
         Directory.Delete(testDbPath, recursive: true);
     }
 }

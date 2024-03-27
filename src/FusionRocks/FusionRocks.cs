@@ -1,65 +1,99 @@
-﻿using System.Text;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Caching.Distributed;
 using RocksDbSharp;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace FusionRocks;
 
 public sealed class FusionRocks : IDistributedCache, IDisposable
 {
-    private readonly ILogger logger; // TODO: use me
+    private readonly FusionRocksOptions options;
+    private readonly IFusionCacheSerializer serializer;
     private readonly RocksDb rocksDb;
 
-    public FusionRocks(FusionRocksOptions options, ILogger<FusionRocks>? logger = null)
+    public FusionRocks(FusionRocksOptions options, IFusionCacheSerializer serializer)
     {
-        this.logger = logger ?? NullLogger<FusionRocks>.Instance;
+        this.options = options;
+        this.serializer = serializer;
         rocksDb = RocksDb.Open(options.DbOptions, options.CachePath);
     }
 
-    public byte[]? Get(string key) 
-        => rocksDb.Get(key.ToBytes());
-
-    public Task<byte[]?> GetAsync(string key, CancellationToken token = default)
-        => Task.Run(() => Get(key), token);
-
-    public void Set(string key, byte[] value, DistributedCacheEntryOptions options) 
-        => rocksDb.Put(key.ToBytes(), value);
-
-    /// <summary>
-    /// This is a FusionRocks specific method that allows you to set multiple keys at once.
-    /// </summary>
-    public void SetBatch(IDictionary<string, byte[]> values)
+    public byte[]? Get(string key)
     {
-        using var batch = new WriteBatch();
+        var keyBytes = options.KeyEncoding.GetBytes(key);
+        var value = rocksDb.Get(keyBytes);
 
-        foreach (var (key, value) in values)
-            batch.Put(key.ToBytes(), value);
+        if (value is null)
+            return null;
 
-        rocksDb.Write(batch);
+        var cacheItem = serializer.Deserialize<CacheItem>(value);
+        if (DateTimeOffset.UtcNow <= cacheItem?.Expiration)
+            return cacheItem.Value;
+
+        Remove(keyBytes);
+        return null;
     }
 
-    public Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
-        => Task.Run(() => Set(key, value, options), token);
+    public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
+    {
+        var keyBytes = options.KeyEncoding.GetBytes(key);
+        var value = rocksDb.Get(keyBytes);
 
+        if (value is null)
+            return null;
+
+        var cacheItem = await serializer.DeserializeAsync<CacheItem>(value);
+        if (DateTimeOffset.UtcNow <= cacheItem?.Expiration)
+            return cacheItem.Value;
+
+        Remove(keyBytes);
+        return null;
+    }
+
+    public void Set(string key, byte[] value, DistributedCacheEntryOptions cacheOptions)
+    {
+        var keyBytes = options.KeyEncoding.GetBytes(key);
+        var cacheItem = CreateCacheItem(value, cacheOptions);
+
+        rocksDb.Put(keyBytes, serializer.Serialize(cacheItem));
+    }
+    
+    public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions cacheOptions,
+        CancellationToken token = default)
+    {
+        var keyBytes = options.KeyEncoding.GetBytes(key);
+        var cacheItem = CreateCacheItem(value, cacheOptions);
+
+        rocksDb.Put(keyBytes, await serializer.SerializeAsync(cacheItem));
+    }
+    private CacheItem CreateCacheItem(byte[] value, DistributedCacheEntryOptions cacheOptions)
+    {
+        var cacheItem = new CacheItem
+        {
+            Value = value,
+            Expiration = DateTimeOffset.UtcNow.Add(
+                cacheOptions.AbsoluteExpirationRelativeToNow
+                ?? cacheOptions.SlidingExpiration
+                ?? options.DefaultExpiration
+            )
+        };
+
+        return cacheItem;
+    }
     public void Refresh(string key)
-        => UnusedMethodException.Throw();
+        => throw new UnusedMethodException();
 
     public Task RefreshAsync(string key, CancellationToken token = default)
         => throw new UnusedMethodException();
 
-    public void Remove(string key) 
-        => rocksDb.Remove(key.ToBytes());
+    public void Remove(string key)
+        => Remove(options.KeyEncoding.GetBytes(key));
+
+    private void Remove(byte[] key)
+        => rocksDb.Remove(key);
 
     public Task RemoveAsync(string key, CancellationToken token = default)
         => Task.Run(() => Remove(key), token);
 
-    public void Dispose() 
+    public void Dispose()
         => rocksDb.Dispose();
-}
-
-internal static class StringExtensions
-{
-    public static byte[] ToBytes(this string value)
-        => Encoding.UTF8.GetBytes(value);
 }

@@ -1,6 +1,6 @@
 # FusionRocks: RocksDB-Persisted Cache for FusionCache
 
-FusionRocks is a persistent caching solution for .NET applications that integrates with the powerful FusionCache library. It leverages RocksDB, a high-performance embedded database for key-value data, to store cache data on disk, providing a robust and efficient caching mechanism. FusionRocks implements the `IDistributedCache` interface for compatibility and ease of use, making it an ideal choice for scenarios requiring data durability and high throughput.
+FusionRocks is a persistent caching solution for .NET applications that integrates with the powerful FusionCache library. It leverages [RocksDB](https://rocksdb.org/), a high-performance embedded database for key-value data, to store cache data on disk, providing a robust and efficient caching mechanism. FusionRocks implements the `IDistributedCache` interface for compatibility and ease of use, making it an ideal choice for scenarios requiring data durability and high throughput.
 
 ## Features
 
