@@ -29,7 +29,7 @@ var fusion = builder.Services
     .AddFusionCache()  
     .WithFusionRocks(builder.Services, options =>
     {
-        options.CachePath = "fusionrocks.db";
+        options.CachePath = "fusionrocks";
     })
     .WithDefaultEntryOptions(new FusionCacheEntryOptions(TimeSpan.FromMinutes(2)));
 ```

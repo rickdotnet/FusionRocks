@@ -21,7 +21,9 @@ public static class FusionCacheBuilderExtensions
         services.Configure(setupAction);
         services.AddTransient(x => x.GetRequiredService<IOptions<FusionRocksOptions>>().Value);
 
+        // currently needs called after Fusion Serializer is added
         // if no serializer, hope for the best?
+        // include one by default?
         if (builder.Serializer == null)
             services.AddSingleton<IDistributedCache, FusionRocks>();
         else

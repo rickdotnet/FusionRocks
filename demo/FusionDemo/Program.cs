@@ -6,9 +6,10 @@ using ZiggyCreatures.Caching.Fusion;
 var builder = Host.CreateApplicationBuilder(args);
 var fusion = builder.Services
     .AddFusionCache()
+    .WithSystemTextJsonSerializer()
     .WithFusionRocks(builder.Services)
-    .WithDefaultEntryOptions(new FusionCacheEntryOptions(TimeSpan.FromSeconds(10)))
-    .WithSystemTextJsonSerializer();
+    .WithDefaultEntryOptions(new FusionCacheEntryOptions(TimeSpan.FromSeconds(30)));
+    
 
 using var scope = builder.Build().Services.CreateScope();
 var provider = scope.ServiceProvider;
