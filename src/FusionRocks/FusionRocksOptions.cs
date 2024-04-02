@@ -12,6 +12,11 @@ public record FusionRocksOptions : IOptions<FusionRocksOptions>
     public DbOptions DbOptions { get; init; }
     public string CachePath { get; init; } = "FusionRocks";
     public Encoding KeyEncoding { get; init; } = Encoding.UTF8;
+
+    /// <summary>
+    /// Turn FusionRocks into a non-expiring database.
+    /// </summary>
+    public bool DatabaseMode { get; init; }
     
     // I don't know that this would ever be used; fusion cache handles expiration
     public TimeSpan DefaultExpiration { get; init; } = TimeSpan.FromMinutes(20); 

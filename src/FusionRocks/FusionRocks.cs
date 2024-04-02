@@ -26,9 +26,16 @@ public sealed class FusionRocks : IDistributedCache, IDisposable
             return null;
 
         var cacheItem = serializer.Deserialize<CacheItem>(value);
+
+        // if we're in database mode, we don't care about expiration
+        if (options.DatabaseMode)
+            return cacheItem?.Value;
+
+        // if it's not expired, return the value
         if (DateTimeOffset.UtcNow <= cacheItem?.Expiration)
             return cacheItem.Value;
 
+        // otherwise, remove the key and return null
         Remove(keyBytes);
         return null;
     }
@@ -42,9 +49,16 @@ public sealed class FusionRocks : IDistributedCache, IDisposable
             return null;
 
         var cacheItem = await serializer.DeserializeAsync<CacheItem>(value);
+        
+        // if we're in database mode, we don't care about expiration
+        if (options.DatabaseMode)
+            return cacheItem?.Value;
+
+        // if it's not expired, return the value
         if (DateTimeOffset.UtcNow <= cacheItem?.Expiration)
             return cacheItem.Value;
 
+        // otherwise, remove the key and return null
         Remove(keyBytes);
         return null;
     }
@@ -56,7 +70,7 @@ public sealed class FusionRocks : IDistributedCache, IDisposable
 
         rocksDb.Put(keyBytes, serializer.Serialize(cacheItem));
     }
-    
+
     public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions cacheOptions,
         CancellationToken token = default)
     {
@@ -65,20 +79,20 @@ public sealed class FusionRocks : IDistributedCache, IDisposable
 
         rocksDb.Put(keyBytes, await serializer.SerializeAsync(cacheItem));
     }
+
     private CacheItem CreateCacheItem(byte[] value, DistributedCacheEntryOptions cacheOptions)
     {
+        ArgumentNullException.ThrowIfNull(cacheOptions.AbsoluteExpiration);
+
         var cacheItem = new CacheItem
         {
             Value = value,
-            Expiration = DateTimeOffset.UtcNow.Add(
-                cacheOptions.AbsoluteExpirationRelativeToNow
-                ?? cacheOptions.SlidingExpiration
-                ?? options.DefaultExpiration
-            )
+            Expiration = cacheOptions.AbsoluteExpiration!.Value
         };
 
         return cacheItem;
     }
+
     public void Refresh(string key)
         => throw new UnusedMethodException();
 
